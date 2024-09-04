@@ -2,14 +2,20 @@ package tests;
 
 import Pojo.LoginPojo;
 import Pojo.LoginPojoResponse;
+import Pojo.OrderDetail;
+import Pojo.OrderRequestPojo;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import org.checkerframework.checker.units.qual.A;
+import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.requestSpecification;
@@ -18,6 +24,8 @@ public class ECommerceAPITests {
     RequestSpecification requestSpecBuilder;
     RequestSpecification requestlogin;
     LoginPojo loginPojo = new LoginPojo();
+    OrderRequestPojo orderRequestPojo = new OrderRequestPojo();
+    OrderDetail orderDetail = new OrderDetail();
     Response response;
     String token;
     String userId;
@@ -28,7 +36,7 @@ public class ECommerceAPITests {
         requestSpecBuilder =  new RequestSpecBuilder().setBaseUri("https://rahulshettyacademy.com")
                 .setContentType(ContentType.JSON).build();
         // Serialization
-        loginPojo.setUserEmail("automationTestSaumya@gmail.com");
+        loginPojo.setUserEmail("automationTest9811@gmail.com");
         loginPojo.setUserPassword("IamQueen@000");
 
         requestlogin = given().log().all().spec(requestSpecBuilder).body(loginPojo);
@@ -53,7 +61,7 @@ public class ECommerceAPITests {
         requestSpecBuilder = new RequestSpecBuilder().setBaseUri("https://rahulshettyacademy.com")
                 .addHeader("Authorization", token)
                 .build();
-        Response response = given().spec(requestSpecBuilder).param("productName","Laptop")
+        response = given().spec(requestSpecBuilder).param("productName","Laptop")
                 .param("productAddedBy", userId)
                 .param("productCategory", "fashion")
                 .param("productSubCategory", "shirts").
@@ -71,6 +79,43 @@ public class ECommerceAPITests {
                 .response();
 
        productId =  response.jsonPath().get("productId");
+    }
+
+    @Test(priority=2)
+    public void createOrder(){
+        orderDetail.setProductOderedId(productId);
+        orderDetail.setCountry("India");
+        List<OrderDetail> order = new ArrayList<>();
+        order.add(orderDetail);
+        orderRequestPojo.setOrder(order);
+        requestSpecBuilder = new RequestSpecBuilder().setBaseUri("https://rahulshettyacademy.com")
+                .addHeader("authorization",token)
+                .setContentType(ContentType.JSON).build();
+
+        response = given().log().all().spec(requestSpecBuilder)
+                .body(orderRequestPojo)
+                .when()
+                .post("/api/ecom/order/create-order")
+                .then().log().all()
+                .statusCode(200)
+                .extract()
+                .response();
+
+    }
+
+    @Test
+    public void deleteProduct(){
+         requestSpecBuilder=	new RequestSpecBuilder().setBaseUri("https://rahulshettyacademy.com")
+                .addHeader("authorization", token).setContentType(ContentType.JSON)
+                .build();
+
+        response = given().log().all().spec(requestSpecBuilder).
+                pathParam("productId",productId)
+                .when().delete("/api/ecom/product/delete-product/{productId}").
+                then().log().all().
+                extract().response();
+
+        Assert.assertEquals("Product Deleted Successfully",response.jsonPath().get("message"));
     }
 
 }
