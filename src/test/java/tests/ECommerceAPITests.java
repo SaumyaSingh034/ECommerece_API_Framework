@@ -83,17 +83,25 @@ public class ECommerceAPITests {
 
     @Test(priority=2)
     public void createOrder(){
-        orderDetail.setProductOderedId(productId);
-        orderDetail.setCountry("India");
-        List<OrderDetail> order = new ArrayList<>();
-        order.add(orderDetail);
-        orderRequestPojo.setOrder(order);
+
+
+
+
         requestSpecBuilder = new RequestSpecBuilder().setBaseUri("https://rahulshettyacademy.com")
                 .addHeader("authorization",token)
                 .setContentType(ContentType.JSON).build();
 
+
+        OrderDetail orderDetail = new OrderDetail();
+        orderDetail.setProductOderedId(productId);
+        orderDetail.setCountry("India");
+        List<OrderDetail> order = new ArrayList<>();
+        order.add(orderDetail);
+        OrderRequestPojo opojo = new OrderRequestPojo();
+        opojo.setOrder(order);
+
         response = given().log().all().spec(requestSpecBuilder)
-                .body(orderRequestPojo)
+                .body(opojo)
                 .when()
                 .post("/api/ecom/order/create-order")
                 .then().log().all()
@@ -103,7 +111,7 @@ public class ECommerceAPITests {
 
     }
 
-    @Test
+    @Test(priority = 3)
     public void deleteProduct(){
          requestSpecBuilder=	new RequestSpecBuilder().setBaseUri("https://rahulshettyacademy.com")
                 .addHeader("authorization", token).setContentType(ContentType.JSON)
